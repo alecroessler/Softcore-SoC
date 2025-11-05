@@ -6,7 +6,7 @@ module spi_core
         input  logic [4:0] addr,
         input  logic [31:0] wr_data,
         output logic [31:0] rd_data,
-        output logic spi_clk, spi_mosi, spi_miso,
+        output logic spi_sclk, spi_mosi, spi_miso,
         output logic [S-1:0] spi_ss_n
     );
 
@@ -27,7 +27,7 @@ module spi_core
         .cpol(cpol),
         .cpha(cpha),
         .dout(spi_out),
-        .sclk(spi_clk),
+        .sclk(spi_sclk),
         .mosi(spi_mosi),
         .miso(spi_miso),
         .spi_done_tick(),

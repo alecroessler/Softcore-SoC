@@ -72,12 +72,21 @@ module spi(
                 if (c_reg == dvsr) begin
                     state_next = p0;
                     c_next = 0;
+                end
+            end
+            
+            
+            p0: begin
+                if (c_reg == dvsr) begin
+                    state_next = p1;
+                    si_next = {si_reg[6:0], miso};
+                    c_next = 0;
                 end else begin
                     c_next = c_reg + 1;
                 end
             end
 
-            p0: begin
+            p1: begin
                 if (c_reg == dvsr) begin
                     if (n_reg == 7) begin
                         spi_done_tick_i = 1;
@@ -92,6 +101,7 @@ module spi(
                     c_next = c_reg + 1;
                 end
             end
+            
 
             default: state_next = idle;
         endcase

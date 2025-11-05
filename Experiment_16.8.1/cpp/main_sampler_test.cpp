@@ -36,23 +36,6 @@ void led_check(GpoCore *led_p, int n) {
    }
 }
 
-/**
- * leds flash according to switch positions.
- * @param led_p pointer to led instance
- * @param sw_p pointer to switch instance
- */
-void sw_check(GpoCore *led_p, GpiCore *sw_p) {
-   int i, s;
-
-   s = sw_p->read();
-   for (i = 0; i < 30; i++) {
-      led_p->write(s);
-      sleep_ms(50);
-      led_p->write(0);
-      sleep_ms(50);
-   }
-}
-
 
 /**
  * Test adxl362 accelerometer using SPI
@@ -76,9 +59,6 @@ void gsensor_check(SpiCore *spi_p, GpoCore *led_p) {
    spi_p->transfer(PART_ID_REG);  // part id address
    id = (int) spi_p->transfer(0x00);
    spi_p->deassert_ss(0);
-   uart.disp("read ADXL362 id (should be 0xf2): ");
-   uart.disp(id, 16);
-   uart.disp("\n\r");
    // read 8-bit x/y/z g values once
    spi_p->assert_ss(0);    // activate
    spi_p->transfer(RD_CMD);  // for read operation
@@ -90,14 +70,27 @@ void gsensor_check(SpiCore *spi_p, GpoCore *led_p) {
    x = (float) xraw / raw_max;
    y = (float) yraw / raw_max;
    z = (float) zraw / raw_max;
-   uart.disp("x/y/z axis g values: ");
-   uart.disp(x, 3);
-   uart.disp(" / ");
-   uart.disp(y, 3);
-   uart.disp(" / ");
-   uart.disp(z, 3);
-   uart.disp("\n\r");
+
+   // Threshold for 1g reading (raw value is ~63.5 from 127 / 2 above)
+   const int8_t THRESHOLD = 40;
+
+    // Check orientation and light the corresponding LED
+   if (yraw > THRESHOLD) {        // +1g on Y-axis
+      led_p->write(0x01); // 0 degrees (LED 0)
+   } else if (xraw > THRESHOLD) { // +1g on X-axis
+      led_p->write(0x02); // 90 degrees (LED 1)
+   } else if (yraw < -THRESHOLD) { // -1g on Y-axis
+      led_p->write(0x04); // 180 degrees (LED 2)
+   } else if (xraw < -THRESHOLD) { // -1g on X-axis
+      led_p->write(0x08); // 270 degrees (LED 3)
+   } else {
+      // Board is likely flat or in transition
+      led_p->write(0x00); 
+   }
 }
+
+
+
 
 
 /**
@@ -118,23 +111,15 @@ void show_test_id(int n, GpoCore *led_p) {
 }
 
 GpoCore led(get_slot_addr(BRIDGE_BASE, S2_LED));
-GpiCore sw(get_slot_addr(BRIDGE_BASE, S3_SW));
 SpiCore spi(get_slot_addr(BRIDGE_BASE, S9_SPI));
 
 
 
 int main() {
-   //uint8_t id, ;
 
-   timer_check(&led);
    while (1) {
-      show_test_id(1, &led);
-      led_check(&led, 16);
-      show_test_id(2, &led);
-      sw_check(&led, &sw);
-      show_test_id(3, &led);
       gsensor_check(&spi, &led);
-      show_test_id(4, &led);
+      sleep_ms(50);
    } //while
 } //main
 

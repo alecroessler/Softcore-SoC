@@ -1,0 +1,26 @@
+Things I did for Lab4:
+	1. Created new GitHub directory for the lab and uploaded all files necessary. These were the same files as last time in the handout except changed mcs_top_vanilla.sv and mmio_sys_vanilla.sv to mcs_top_sampler.sv and mmio_sys_sampler.sv Same goes for main_sampler_test.cpp instead of main_vanilla_test.cpp.
+
+	2. Next, added spi.sv and spi_core.sv While these files were in the Chu folder, they were Verilog header files instead of normal system Verilog files so I created the files myself and manually copied the contents from Chapter 16 in the book. Then downloaded ZIP file of GitHub repo which allowed for smooth creation of new vanilla project on local PC.
+
+	3. Main_sampler_test.cpp changes:
+		-Deleted all irrelevant code pertaining to test functions for anything but leds, timers, and SPI (accelerometer)
+		-Altered SPI accelerometer function for testing by deleting UART specific code and replacing with simple led outputs.
+		-Next, modified chus function to decode G values from accelerometer test function that translated accelerometer output to orientation data for leds
+
+	4. HDL stuff:
+		-IN mmio_sys_sampler.sv delete all slot instantiations for things were not using (uart, etc).
+		- add this for the generate function so it doesn't zero out slot 9 (spi) read data reg. if (i != 9) and change i to start at 5
+		- Correctly instantiate spi_core module into slot 9
+
+
+
+
+
+CHANGE /INST IN PLATFORM -> SDT -> INCLUDE -> .MMI
+
+
+*********** ACCELEROMETER MATH *****************
+each x y and z value is converted from register as a raw, 8 bit integer. For the board orientated at 90 degrees, this means that the zraw integer will read exactly all 8 bits or 255. as it crosses over 90 degrees it goes to the opposite and is a very low number (0-5 for instance). This also means that the zraw value is at its midway point. Through testing this was observed to be (11000011) or (195). which is more than half but idk. WAIT ITS SIGNED SO FIGURE THAT OUT
+
+Chu provided a means to convert to g from this raw value which is expressed in a 
