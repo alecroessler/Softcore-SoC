@@ -84,7 +84,6 @@ void gsensor_check(SpiCore *spi_p, GpoCore *led_p) {
    } else if (xraw < -THRESHOLD) { // -1g on X-axis
       led_p->write(0x08); // 270 degrees (LED 3)
    } else {
-      // Board is likely flat or in transition
       led_p->write(0x00); 
    }
 }
