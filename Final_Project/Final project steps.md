@@ -12,7 +12,15 @@ mmi and bit are in final\_app\_vitis -> \_ide -> bitstream
 
 # **Outline of work:**
 
-##### Initial Testing of Sound (DDFS CORE) with Chu's Test System-
+1. ## DDFS Sound Core and adaptation to Morse Code:
+
+
+
+Talk about overview of choosing DDFS core and what it is.
+
+
+
+##### 1.1 Initial Testing of Sound (DDFS CORE) with Chu's Test System-
 
 
 
@@ -44,5 +52,91 @@ Files I needed for ddfs core:
 
 
 
-The first testing included using Chus main sampler system to run his ddfs test function. Modifed mmio\_sys\_sampler.sv for slot 12 instantiation. This creates a sine wave mimicking a siren and replays 5 times. I initially had trouble getting the sin\_rom.sv file to successfully load in the sin\_table.txt in Vivado as I tried to make it a .mem file instead of .txt. I was able to load it in eventually as txt and the test worked flawlessly.
+The first testing included using Chus main sampler system to run his ddfs test function. Modifed mmio\_sys\_sampler.sv for slot 12 instantiation. This creates a sine wave mimicking a siren and replays 5 times. I initially had trouble getting the sin\_rom.sv file to successfully load in the sin\_table.txt in Vivado as I tried to make it a .mem file instead of .txt. I was able to load it in eventually as txt and the test worked flawlessly. Remember to put in there have to change path of **/inst** to delete it to find CPU for mmi file.
+
+
+
+
+
+##### 1.2 Understanding DDFS Core-
+
+Read book and summarize chapter
+
+
+
+
+
+##### 1.3 Creating short and long pulses for Morse Code-
+
+
+
+
+
+
+
+## 2\. UART Communication with Computer:
+
+#### 
+
+##### 2.1 Basic UART Test via Chu's main\_sampler-
+
+
+
+
+
+
+
+#### 2.2 UART Understanding-
+
+Read book and summarize
+
+
+
+
+
+##### 2.3 Receiving from Computer and Displaying in ASCII on Seven Segment Display-
+
+
+
+
+
+2.3.1 Test Program-
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 3\. Morse Code Logic:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
