@@ -68,7 +68,7 @@ Read book and summarize chapter
 
 ##### 1.3 Creating short and long pulses for Morse Code-
 
-
+Build off of the function from Chu's main sampler cpp file for this. Understand it and adapt to standard Morse Code durations. This will not include the Morse Code logic yet, just generated short and long pulses that play to the speaker.
 
 
 
@@ -100,7 +100,25 @@ Read book and summarize
 
 
 
-2.3.1 Test Program-
+###### 2.3.1 Test Program-
+
+
+
+
+
+##### 2.4 Storage Buffer for Characters while Morse Logic Plays-
+
+
+
+I plan on sending a message to the computer over UART that says "Enter you Morse Code message using alphanumeric characters, up to 8". Then after the user inputs their message and presses enter, the message is stored on the processor/ hardware. Then this gets sent to the morse code logic where it plays one character at a time. 
+
+
+
+
+
+## 3\. Message Display on Seven Segment Displays-
+
+I also want to incorporate the sseg file from Chu to display the entire message the 8 seven segment displays and the character that's being sent i want to flash it. I would like to only have this as a hardware component with a case statement to determine which seven segment output to show and somehow work in a counter at like 200 ms on 50 ms off or something that flashes the current transmitting character.
 
 
 
@@ -108,17 +126,15 @@ Read book and summarize
 
 
 
+## 4\. Morse Code Logic:
 
 
 
 
 
 
-## 3\. Morse Code Logic:
 
-
-
-
+## 5\. Output Speaker and Amplifier:
 
 
 
