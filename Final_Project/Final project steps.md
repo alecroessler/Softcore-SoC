@@ -122,6 +122,14 @@ I also want to incorporate the sseg file from Chu to display the entire message 
 
 
 
+3.2 Testing sseg mux (slot 8)-
+
+
+
+3.1 Modifying Slot 8 for Flash Mask-
+
+In order to flash the corresponding transmitting character, we would need to alter the time in which is delayed for cycling through each seven segment. The easiest way would be to bypass all hardware and implement it on the software side. However, inputting time delays in software will affect the timing needed for the morse code sound transmission that is happening concurrently. The solution is to use what we did in earlier labs to write to a hardware register from software. The software will know which of the characters is currently being played using the morse code / ddfs system and can convert that to a 8 bit vector that has a 1 for the position of the seven segment that is being played and will thus need to flash. We can write this to a register in a new slot, example slot 4 as I did on lab3. Alternatively we can keep the slot 8 compact and use its register using addr, etc. Address 00 write characters as currently done then address 01 is responsible for the flash mask.
+
 
 
 
