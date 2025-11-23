@@ -122,7 +122,7 @@ int main() {
    
    while (1) {
        morse_player.play_sos_test();
-       sleep_ms(500);
+       sleep_ms(5000);
    } //while
 } //main
 
