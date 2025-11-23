@@ -66,11 +66,135 @@ Read book and summarize chapter
 
 
 
-##### 1.3 Creating short and long pulses for Morse Code-
+##### 1.3 Creating pulse for Morse Code-
 
-Build off of the function from Chu's main sampler cpp file for this. Understand it and adapt to standard Morse Code durations. This will not include the Morse Code logic yet, just generated short and long pulses that play to the speaker.
+Build off of the function from Chu's main sampler cpp file for this. Understand it and adapt to standard Morse Code durations. This will not include the Morse Code logic yet, just generated pulses that play to the speaker. Talk about setting constant carrier frequency and relate to section 1.2
 
 
+
+
+
+###### 1.3.1 Software Test-
+
+
+
+
+
+**Software (main\_sampler.cpp)-**
+
+\#define DIT\_MS 100
+
+\#define DAH\_MS 300
+
+\#define SYMBOL\_SPACE\_MS 100  // Space between parts of same letter
+
+\#define LETTER\_SPACE\_MS 300  // Space between letters
+
+
+
+
+
+void ddfs\_setup(DdfsCore \*ddfs\_p){
+
+&nbsp;   ddfs.set\_env\_source(0);      // Use software envelope
+
+&nbsp;   ddfs.set\_carrier\_freq(600);  // Set fixed pitch (e.g. 600Hz)
+
+&nbsp;   ddfs.set\_offset\_freq(0);     // No offset
+
+&nbsp;   ddfs.set\_env(0.0);           // Start silent
+
+}
+
+
+
+void play\_morse\_pulse(DdfsCore \*ddfs, int duration\_ms) {
+
+&nbsp;   // 1. Turn Sound ON (Max Amplitude)
+
+&nbsp;   ddfs->set\_env(1.0);
+
+&nbsp;   
+
+&nbsp;   // 2. Hold the sound for the specific duration (The "Pulse")
+
+&nbsp;   sleep\_ms(duration\_ms);
+
+&nbsp;   
+
+&nbsp;   // 3. Turn Sound OFF
+
+&nbsp;   ddfs->set\_env(0.0);
+
+&nbsp;   
+
+&nbsp;   // 4. Short silence between every pulse so they don't blend
+
+&nbsp;   sleep\_ms(SYMBOL\_SPACE\_MS);
+
+}
+
+
+
+// Helper functions for clarity
+
+void play\_dit(DdfsCore \*ddfs) {
+
+&nbsp;   play\_morse\_pulse(ddfs, DIT\_MS);
+
+}
+
+
+
+void play\_dah(DdfsCore \*ddfs) {
+
+&nbsp;   play\_morse\_pulse(ddfs, DAH\_MS);
+
+}
+
+
+
+void play\_letter\_space() {
+
+&nbsp;   sleep\_ms(LETTER\_SPACE\_MS);
+
+}
+
+
+
+Example SOS Usage
+
+// S (...)
+
+play\_dit(\&ddfs); 
+
+play\_dit(\&ddfs); 
+
+play\_dit(\&ddfs);
+
+play\_letter\_space(); // Gap between S and O
+
+
+
+// O (---)
+
+play\_dah(\&ddfs);
+
+play\_dah(\&ddfs);
+
+play\_dah(\&ddfs);
+
+play\_letter\_space(); // Gap between O and S
+
+
+
+// S (...)
+
+play\_dit(\&ddfs); 
+
+play\_dit(\&ddfs); 
+
+play\_dit(\&ddfs);
 
 
 
@@ -135,6 +259,18 @@ In order to flash the corresponding transmitting character, we would need to alt
 
 
 ## 4\. Morse Code Logic:
+
+* Dit: 1 unit
+* Dah: 3 units
+* Intra-character space (the gap between dits and dahs within a character): 1 unit
+* Inter-character space (the gap between the characters of a word): 3 units
+* Word space (the gap between two words): 7 units
+
+
+
+Use website here for calculating words per minute: [https://morsecode.world/international/timing/](https://morsecode.world/international/timing/)
+
+Talk about the time unit I choose as a good balance.
 
 
 
