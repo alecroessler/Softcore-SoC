@@ -80,55 +80,121 @@ Build off of the function from Chu's main sampler cpp file for this. Understand 
 
 
 
-**Software (main\_sampler.cpp)-**
+###### **Software (main\_sampler.cpp)-**
+
+const int FREQ = 600;
+
+morse morse\_player(\&ddfs, FREQ); 
+
+
+
+int main() {
+
+&nbsp;  
+
+&nbsp;  while (1) {
+
+&nbsp;      morse\_player.play\_sos\_test();
+
+&nbsp;      sleep\_ms(500);
+
+&nbsp;  } //while
+
+} //main
+
+
+
+
+
+###### **morse.h-**
+
+\#include "ddfs\_core.h"
+
+
 
 \#define DIT\_MS 100
 
-\#define DAH\_MS 300
+\#define DAH\_MS (3 \* DIT\_MS)
 
-\#define SYMBOL\_SPACE\_MS 100  // Space between parts of same letter
+\#define SYMBOL\_SPACE\_MS DIT\_MS // Space between parts of same letter
 
-\#define LETTER\_SPACE\_MS 300  // Space between letters
-
-
+\#define LETTER\_SPACE\_MS (3 \* DIT\_MS) // Space between letters
 
 
 
-void ddfs\_setup(DdfsCore \*ddfs\_p){
+class morse {
 
-&nbsp;   ddfs.set\_env\_source(0);      // Use software envelope
+private:
 
-&nbsp;   ddfs.set\_carrier\_freq(600);  // Set fixed pitch (e.g. 600Hz)
+&nbsp;   DdfsCore \*ddfs\_p;
 
-&nbsp;   ddfs.set\_offset\_freq(0);     // No offset
+&nbsp;   void ddfs\_setup(int freq);
 
-&nbsp;   ddfs.set\_env(0.0);           // Start silent
+&nbsp;   void play\_pulse(int duration\_ms);
+
+&nbsp;   void play\_dit();
+
+&nbsp;   void play\_dah();
+
+&nbsp;   void play\_letter\_space();
+
+&nbsp;   
+
+public:
+
+&nbsp;   morse(DdfsCore \*ddfs\_core, int freq);
+
+&nbsp;   void play\_sos\_test();
+
+};
+
+
+
+###### **morse.cpp-**
+
+\#include "morse.h" 
+
+\#include "chu\_init.h"      
+
+\#include "ddfs\_core.h"
+
+
+
+// Constructor
+
+morse::morse(DdfsCore \*ddfs\_core, int freq) {
+
+&nbsp;   ddfs\_p = ddfs\_core;
+
+&nbsp;   ddfs\_setup(freq);
 
 }
 
 
 
-void play\_morse\_pulse(DdfsCore \*ddfs, int duration\_ms) {
+// Set starting default values
 
-&nbsp;   // 1. Turn Sound ON (Max Amplitude)
+void morse::ddfs\_setup(int freq){
 
-&nbsp;   ddfs->set\_env(1.0);
+&nbsp;   ddfs\_p->set\_env\_source(0); 
 
-&nbsp;   
+&nbsp;   ddfs\_p->set\_carrier\_freq(freq); 
 
-&nbsp;   // 2. Hold the sound for the specific duration (The "Pulse")
+&nbsp;   ddfs\_p->set\_offset\_freq(0); // No offset
+
+&nbsp;   ddfs\_p->set\_env(0.0); // Start silent
+
+}
+
+
+
+void morse::play\_pulse(int duration\_ms) {
+
+&nbsp;   ddfs\_p->set\_env(1.0);
 
 &nbsp;   sleep\_ms(duration\_ms);
 
-&nbsp;   
-
-&nbsp;   // 3. Turn Sound OFF
-
-&nbsp;   ddfs->set\_env(0.0);
-
-&nbsp;   
-
-&nbsp;   // 4. Short silence between every pulse so they don't blend
+&nbsp;   ddfs\_p->set\_env(0.0);
 
 &nbsp;   sleep\_ms(SYMBOL\_SPACE\_MS);
 
@@ -136,25 +202,21 @@ void play\_morse\_pulse(DdfsCore \*ddfs, int duration\_ms) {
 
 
 
-// Helper functions for clarity
+// Helper functions
 
-void play\_dit(DdfsCore \*ddfs) {
+void morse::play\_dit() {
 
-&nbsp;   play\_morse\_pulse(ddfs, DIT\_MS);
-
-}
-
-
-
-void play\_dah(DdfsCore \*ddfs) {
-
-&nbsp;   play\_morse\_pulse(ddfs, DAH\_MS);
+&nbsp;   play\_pulse(DIT\_MS);
 
 }
 
+void morse::play\_dah() {
 
+&nbsp;   play\_pulse(DAH\_MS);
 
-void play\_letter\_space() {
+}
+
+void morse::play\_letter\_space() {
 
 &nbsp;   sleep\_ms(LETTER\_SPACE\_MS);
 
@@ -162,39 +224,41 @@ void play\_letter\_space() {
 
 
 
-Example SOS Usage
+void morse::play\_sos\_test(){
 
-// S (...)
+&nbsp;   // S 
 
-play\_dit(\&ddfs); 
+&nbsp;   play\_dit();
 
-play\_dit(\&ddfs); 
+&nbsp;   play\_dit();
 
-play\_dit(\&ddfs);
+&nbsp;   play\_dit();
 
-play\_letter\_space(); // Gap between S and O
+&nbsp;   play\_letter\_space(); 
+
+&nbsp;   // O 
+
+&nbsp;   play\_dah();
+
+&nbsp;   play\_dah();
+
+&nbsp;   play\_dah();
+
+&nbsp;   play\_letter\_space(); 
+
+&nbsp;   // S 
+
+&nbsp;   play\_dit();
+
+&nbsp;   play\_dit();
+
+&nbsp;   play\_dit();
+
+}
 
 
 
-// O (---)
 
-play\_dah(\&ddfs);
-
-play\_dah(\&ddfs);
-
-play\_dah(\&ddfs);
-
-play\_letter\_space(); // Gap between O and S
-
-
-
-// S (...)
-
-play\_dit(\&ddfs); 
-
-play\_dit(\&ddfs); 
-
-play\_dit(\&ddfs);
 
 
 

@@ -12,56 +12,8 @@
 #include "gpio_cores.h"
 #include "sseg_core.h"
 #include "ddfs_core.h"
+#include "morse.h"
 
-/**
- * blink once per second for 5 times.
- * provide a sanity check for timer (based on SYS_CLK_FREQ)
- * @param led_p pointer to led instance
- */
-void timer_check(GpoCore *led_p) {
-   int i;
-
-   for (i = 0; i < 5; i++) {
-      led_p->write(0xffff);
-      sleep_ms(500);
-      led_p->write(0x0000);
-      sleep_ms(500);
-      debug("timer check - (loop #)/now: ", i, now_ms());
-   }
-}
-
-/**
- * check individual led
- * @param led_p pointer to led instance
- * @param n number of led
- */
-void led_check(GpoCore *led_p, int n) {
-   int i;
-
-   for (i = 0; i < n; i++) {
-      led_p->write(1, i);
-      sleep_ms(100);
-      led_p->write(0, i);
-      sleep_ms(100);
-   }
-}
-
-/**
- * leds flash according to switch positions.
- * @param led_p pointer to led instance
- * @param sw_p pointer to switch instance
- */
-void sw_check(GpoCore *led_p, GpiCore *sw_p) {
-   int i, s;
-
-   s = sw_p->read();
-   for (i = 0; i < 30; i++) {
-      led_p->write(s);
-      sleep_ms(50);
-      led_p->write(0);
-      sleep_ms(50);
-   }
-}
 
 /**
  * uart transmits test line.
@@ -74,73 +26,6 @@ void uart_check() {
    uart.disp(loop);
    uart.disp("\n\r");
    loop++;
-}
-
-/**
- * read FPGA internal voltage temperature
- * @param adc_p pointer to xadc instance
- */
-
-
-
-/**
- * tri-color led dims gradually
- * @param led_p pointer to led instance
- * @param sw_p pointer to switch instance
- */
-
-void pwm_3color_led_check(PwmCore *pwm_p) {
-   int i, n;
-   double bright, duty;
-   const double P20 = 1.2589;  // P20=100^(1/20); i.e., P20^20=100
-
-   pwm_p->set_freq(50);
-   for (n = 0; n < 3; n++) {
-      bright = 1.0;
-      for (i = 0; i < 20; i++) {
-         bright = bright * P20;
-         duty = bright / 100.0;
-         pwm_p->set_duty(duty, n);
-         pwm_p->set_duty(duty, n + 3);
-         sleep_ms(100);
-      }
-      sleep_ms(300);
-      pwm_p->set_duty(0.0, n);
-      pwm_p->set_duty(0.0, n + 3);
-   }
-}
-
-/**
- * Test debounced buttons
- *   - count transitions of normal and debounced button
- * @param db_p pointer to debouceCore instance
- */
-
-void debounce_check(DebounceCore *db_p, GpoCore *led_p) {
-   long start_time;
-   int btn_old, db_old, btn_new, db_new;
-   int b = 0;
-   int d = 0;
-   uint32_t ptn;
-
-   start_time = now_ms();
-   btn_old = db_p->read();
-   db_old = db_p->read_db();
-   do {
-      btn_new = db_p->read();
-      db_new = db_p->read_db();
-      if (btn_old != btn_new) {
-         b = b + 1;
-         btn_old = btn_new;
-      }
-      if (db_old != db_new) {
-         d = d + 1;
-         db_old = db_new;
-      }
-      ptn = d & 0x0000000f;
-      ptn = ptn | (b & 0x0000000f) << 4;
-      led_p->write(ptn);
-   } while ((now_ms() - start_time) < 5000);
 }
 
 /**
@@ -228,40 +113,16 @@ void ddfs_check(DdfsCore *ddfs_p, GpoCore *led_p) {
    sleep_ms(1000);
 }
 
-
-
-/**
- * core test
- * @param led_p pointer to led instance
- * @param sw_p pointer to switch instance
- */
-void show_test_id(int n, GpoCore *led_p) {
-   int i, ptn;
-
-   ptn = n; //1 << n;
-   for (i = 0; i < 20; i++) {
-      led_p->write(ptn);
-      sleep_ms(30);
-      led_p->write(0);
-      sleep_ms(30);
-   }
-}
-
-GpoCore led(get_slot_addr(BRIDGE_BASE, S2_LED));
-GpiCore sw(get_slot_addr(BRIDGE_BASE, S3_SW));
-PwmCore pwm(get_slot_addr(BRIDGE_BASE, S6_PWM));
-DebounceCore btn(get_slot_addr(BRIDGE_BASE, S7_BTN));
 SsegCore sseg(get_slot_addr(BRIDGE_BASE, S8_SSEG));
 DdfsCore ddfs(get_slot_addr(BRIDGE_BASE, S12_DDFS));
-
+const int FREQ = 600;
+morse morse_player(&ddfs, FREQ); 
 
 int main() {
-   //uint8_t id, ;
-
-   timer_check(&led);
+   
    while (1) {
-      show_test_id(2, &led);
-      ddfs_check(&ddfs, &led);
+       morse_player.play_sos_test();
+       sleep_ms(500);
    } //while
 } //main
 
