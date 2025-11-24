@@ -8,6 +8,7 @@
  ********************************************************************/
 
 #include "sseg_core.h"
+#include "string.h"
 
 SsegCore::SsegCore(uint32_t core_base_addr) {
    // pattern for "HI"; the order in array is reversed in 7-seg display
@@ -85,3 +86,82 @@ uint8_t SsegCore::h2s(int hex) {
       ptn = 0xff;
    return (ptn);
 }
+
+
+uint8_t SsegCore::ascii_to_7seg(char c)
+{
+    // Convert lowercase → uppercase
+    if (c >= 'a' && c <= 'z')
+        c = c - 'a' + 'A';
+    switch (c)
+    {
+        case '0': return 0xC0;
+        case '1': return 0xF9;
+        case '2': return 0xA4;
+        case '3': return 0xB0;
+        case '4': return 0x99;
+        case '5': return 0x92;
+        case '6': return 0x82;
+        case '7': return 0xF8;
+        case '8': return 0x80;
+        case '9': return 0x90;
+        case 'A': return 0x88;
+        case 'B': return 0x83;
+        case 'C': return 0xC6;
+        case 'D': return 0xA1;
+        case 'E': return 0x86;
+        case 'F': return 0x8E;
+        case 'G': return 0xC2;
+        case 'H': return 0x89;
+        case 'I': return 0xF9;   
+        case 'J': return 0xF1;
+        case 'K': return 0x8A;  
+        case 'L': return 0xC7;
+        case 'M': return 0xAA;   
+        case 'N': return 0xAB;   
+        case 'O': return 0xC0;
+        case 'P': return 0x8C;
+        case 'Q': return 0x98;   
+        case 'R': return 0xAF;   
+        case 'S': return 0x92; 
+        case 'T': return 0x87;
+        case 'U': return 0xC1;
+        case 'V': return 0xE3;   
+        case 'W': return 0xB1;   
+        case 'X': return 0x89;   
+        case 'Y': return 0x91;
+        case 'Z': return 0xA4;  
+
+        case '-': return 0xBF;
+        case ' ': return 0xFF;   
+        default:  return 0xFF;  
+    }
+}
+
+void SsegCore::clear_all()
+{
+    for (int i = 0; i < 8; i++)
+        write_1ptn(0xFF, i);
+
+    set_dp(0x00);   // turn all decimal points off
+}
+
+
+void SsegCore::write_string(int pos, const char *str)
+{
+    uint8_t buf[8];
+
+    // start with all blanks
+    for (int i = 0; i < 8; i++)
+        buf[i] = 0xFF;
+
+    int i = 0;
+    while (str[i] != '\0' && (pos + i) < 8)
+    {
+        buf[7 - (pos + i)] = ascii_to_7seg(str[i]);
+        i++;
+    }
+
+    write_8ptn(buf);
+}
+

@@ -1,4 +1,5 @@
 #include "ddfs_core.h"
+#include "sseg_core.h"
 
 
 #define DIT_MS 100
@@ -9,6 +10,7 @@
 class morse {
 private:
     DdfsCore *ddfs_p;
+    SsegCore *sseg_p; 
     void ddfs_setup(int freq);
     void play_pulse(int duration_ms);
     void play_dit();
@@ -16,6 +18,6 @@ private:
     void play_letter_space();
     
 public:
-    morse(DdfsCore *ddfs_core, int freq);
-    void play_sos_test();
+    morse(DdfsCore *ddfs_core, SsegCore *sseg_core, int freq);
+    void play_message(const char *msg);
 };

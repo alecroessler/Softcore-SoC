@@ -3,8 +3,9 @@
 #include "ddfs_core.h"
 
 // Constructor
-morse::morse(DdfsCore *ddfs_core, int freq) {
+morse::morse(DdfsCore *ddfs_core, SsegCore *sseg_core, int freq) {
     ddfs_p = ddfs_core;
+    sseg_p = sseg_core;
     ddfs_setup(freq);
 }
 
@@ -34,19 +35,43 @@ void morse::play_letter_space() {
     sleep_ms(LETTER_SPACE_MS);
 }
 
-void morse::play_sos_test(){
-    // S 
-    play_dit();
-    play_dit();
-    play_dit();
-    play_letter_space(); 
-    // O 
-    play_dah();
-    play_dah();
-    play_dah();
-    play_letter_space(); 
-    // S 
-    play_dit();
-    play_dit();
-    play_dit();
+static const char* MORSE_TABLE[36] = {
+    ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---",  // A-J
+    "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-",     // K-T
+    "..-", "...-", ".--", "-..-", "-.--", "--..",                            // U-Z
+    "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----." // 0-9
+};
+
+
+void morse::play_message(const char *msg)
+{
+    io_write(sseg_p->get_base_addr(), 2, 1);
+    for (int i = 0; i < 8 && msg[i] != '\0'; i++) {
+
+        io_write(sseg_p->get_base_addr(), 3, 7 - i); // Write led num to register 3
+
+        char c = msg[i];
+        int idx = -1;
+
+        if (c >= 'A' && c <= 'Z') idx = c - 'A';      // letters
+        else if (c >= '0' && c <= '9') idx = 26 + (c - '0'); // digits
+        else continue;  // skip unsupported characters
+
+        const char *morse_code = MORSE_TABLE[idx];
+
+        // Play each symbol in the letter
+        for (int j = 0; morse_code[j] != '\0'; j++) {
+            if (morse_code[j] == '.') play_dit();
+            else if (morse_code[j] == '-') play_dah();
+
+            // short pause between symbols
+            if (morse_code[j+1] != '\0') sleep_ms(SYMBOL_SPACE_MS);
+        }
+
+        // Space between letters
+        play_letter_space();
+    }
+    io_write(sseg_p->get_base_addr(), 2, 0);
 }
+
+

@@ -70,6 +70,14 @@ public:
     */
    void set_dp(uint8_t pt);
 
+   void write_string(int pos, const char *str);
+   void clear_all();
+   uint32_t get_base_addr() const { return base_addr; }
+
+
+
+   
+
 private:
    /* variable to keep track of current status */
    uint32_t base_addr;
@@ -77,7 +85,8 @@ private:
    uint8_t dp;            // decimal point
    /* methods */
    void write_led();      // write patterns to reg
+   uint8_t ascii_to_7seg(char c); // added this
 }
 ;
 
-#endif  // _SSEG_CORE_H_INCLUDED
+#endif  // _SSEG_CORE_H_INCLUDED

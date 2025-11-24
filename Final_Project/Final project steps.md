@@ -857,6 +857,16 @@ io\_write(sseg\_p->get\_base\_addr(), 2, 7 - i); // Write led num to register 3
 
 
 
+add this to begginng of morse.cpp
+
+io\_write(sseg\_p->get\_base\_addr(), 3, 1);
+
+and his to end
+
+io\_write(sseg\_p->get\_base\_addr(), 3, 0);
+
+
+
 
 
 
@@ -879,7 +889,7 @@ add enable bit in separate register
 
 
 
-# **ADD SUPPORT FOR SPACE !!!!!!!!!!!!!!!!!!!!!!!!!**
+# 
 
 ## 5\. Output Speaker and Amplifier:
 

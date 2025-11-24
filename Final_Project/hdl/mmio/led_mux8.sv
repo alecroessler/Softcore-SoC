@@ -4,6 +4,7 @@ module led_mux8
     input  logic [7:0] in3, in2, in1, in0,
     input  logic [7:0] in7, in6, in5, in4,
     input logic [2:0] active_segment, ///////////////////////////////////////////////////////
+    input logic seg_enable,
     output logic [7:0] an,   // enable, 1-out-of-8 asserted low
     output logic [7:0] sseg  // led segments
    );
@@ -72,7 +73,7 @@ module led_mux8
        endcase
        
        
-       if ((current_segment == active_segment) && blink) ////////////////////////////
+       if ((current_segment == active_segment) && blink && seg_enable) ////////////////////////////
             sseg = 8'hFF; /////////////////////////////////////////////////
        else/////////////////////////////////////////////////////////////
             sseg = intermediate_sseg;/////////////////////////////////////
