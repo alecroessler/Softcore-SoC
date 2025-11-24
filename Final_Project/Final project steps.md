@@ -8,6 +8,22 @@ mmi and bit are in final\_app\_vitis -> \_ide -> bitstream
 
 
 
+FILES MODIFIED:
+
+mmio\_sys\_sampler.sv
+
+main\_sampler.cpp
+
+sseg.h
+
+sseg.cpp
+
+morse.h
+
+morse.cpp
+
+
+
 
 
 # **Outline of work:**
@@ -96,7 +112,7 @@ int main() {
 
 &nbsp;      morse\_player.play\_sos\_test();
 
-&nbsp;      sleep\_ms(500);
+&nbsp;      sleep\_ms(5000);
 
 &nbsp;  } //while
 
@@ -268,6 +284,58 @@ void morse::play\_sos\_test(){
 
 ##### 2.1 Basic UART Test via Chu's main\_sampler-
 
+Chu's function-
+
+void uart\_check() {
+
+&nbsp;  static int loop = 0;
+
+
+
+&nbsp;  uart.disp("uart test #");
+
+&nbsp;  uart.disp(loop);
+
+&nbsp;  uart.disp("\\n\\r");
+
+&nbsp;  loop++;
+
+}
+
+
+
+main-
+
+int main() {
+
+&nbsp;  while (1) {
+
+&nbsp;      uart\_check();
+
+&nbsp;  } //while
+
+} //main
+
+
+
+Using mobaxterm as I used it for massively parallel programming course and am familiar with it along with being a better GUI than putty
+
+in mobaxterm:
+
+&nbsp;	1. Click session
+
+&nbsp;	2. Serial
+
+&nbsp;	3. Identify COM Port (for me it was com4)
+
+&nbsp;	4. Set baud rate (9600 from Chu's default setting in uart\_core.cpp)
+
+
+
+successfully saw "uart test #1" printed and looping
+
+NOTE: Do not need to explicity construct UART core as Chu already does this in chu\_init.h and is thus globally defined
+
 
 
 
@@ -276,7 +344,7 @@ void morse::play\_sos\_test(){
 
 #### 2.2 UART Understanding-
 
-Read book and summarize
+Read book and summarize, talk about receiving bits
 
 
 
@@ -284,11 +352,349 @@ Read book and summarize
 
 ##### 2.3 Receiving from Computer and Displaying in ASCII on Seven Segment Display-
 
+###### **sseg.h-**
+
+void write\_string(int pos, const char \*str);
+
+void clear\_all();
+
+uint8\_t ascii\_to\_7seg(char c); // private
 
 
 
 
-###### 2.3.1 Test Program-
+
+###### **sseg.cpp-**
+
+uint8\_t SsegCore::ascii\_to\_7seg(char c)
+
+{
+
+&nbsp;   // Convert lowercase → uppercase
+
+&nbsp;   if (c >= 'a' \&\& c <= 'z')
+
+&nbsp;       c = c - 'a' + 'A';
+
+&nbsp;   switch (c)
+
+&nbsp;   {
+
+&nbsp;       case '0': return 0xC0;
+
+&nbsp;       case '1': return 0xF9;
+
+&nbsp;       case '2': return 0xA4;
+
+&nbsp;       case '3': return 0xB0;
+
+&nbsp;       case '4': return 0x99;
+
+&nbsp;       case '5': return 0x92;
+
+&nbsp;       case '6': return 0x82;
+
+&nbsp;       case '7': return 0xF8;
+
+&nbsp;       case '8': return 0x80;
+
+&nbsp;       case '9': return 0x90;
+
+&nbsp;       case 'A': return 0x88;
+
+&nbsp;       case 'B': return 0x83;
+
+&nbsp;       case 'C': return 0xC6;
+
+&nbsp;       case 'D': return 0xA1;
+
+&nbsp;       case 'E': return 0x86;
+
+&nbsp;       case 'F': return 0x8E;
+
+&nbsp;       case 'G': return 0xC2;
+
+&nbsp;       case 'H': return 0x89;
+
+&nbsp;       case 'I': return 0xF9;   
+
+&nbsp;       case 'J': return 0xF1;
+
+&nbsp;       case 'K': return 0x8A;  
+
+&nbsp;       case 'L': return 0xC7;
+
+&nbsp;       case 'M': return 0xAA;   
+
+&nbsp;       case 'N': return 0xAB;   
+
+&nbsp;       case 'O': return 0xC0;
+
+&nbsp;       case 'P': return 0x8C;
+
+&nbsp;       case 'Q': return 0x98;   
+
+&nbsp;       case 'R': return 0xAF;   
+
+&nbsp;       case 'S': return 0x92; 
+
+&nbsp;       case 'T': return 0x87;
+
+&nbsp;       case 'U': return 0xC1;
+
+&nbsp;       case 'V': return 0xE3;   
+
+&nbsp;       case 'W': return 0xB1;   
+
+&nbsp;       case 'X': return 0x89;   
+
+&nbsp;       case 'Y': return 0x91;
+
+&nbsp;       case 'Z': return 0xA4;  
+
+
+
+&nbsp;       case '-': return 0xBF;
+
+&nbsp;       case ' ': return 0xFF;   
+
+&nbsp;       default:  return 0xFF;  
+
+&nbsp;   }
+
+}
+
+
+
+void SsegCore::clear\_all()
+
+{
+
+&nbsp;   for (int i = 0; i < 8; i++)
+
+&nbsp;       write\_1ptn(0xFF, i);
+
+
+
+&nbsp;   set\_dp(0x00);   // turn all decimal points off
+
+}
+
+
+
+
+
+void SsegCore::write\_string(int pos, const char \*str)
+
+{
+
+&nbsp;   uint8\_t buf\[8];
+
+
+
+&nbsp;   // start with all blanks
+
+&nbsp;   for (int i = 0; i < 8; i++)
+
+&nbsp;       buf\[i] = 0xFF;
+
+
+
+&nbsp;   int i = 0;
+
+&nbsp;   while (str\[i] != '\\0' \&\& (pos + i) < 8)
+
+&nbsp;   {
+
+&nbsp;       buf\[7 - (pos + i)] = ascii\_to\_7seg(str\[i]);
+
+&nbsp;       i++;
+
+&nbsp;   }
+
+
+
+&nbsp;   write\_8ptn(buf);
+
+}
+
+
+
+
+
+###### 2.3.1 Test Program Show String-
+
+###### **main\_sampler\_test.cpp-**
+
+int main() {
+
+
+
+&nbsp;  while (1) {
+
+&nbsp;      sseg.clear\_all();
+
+&nbsp;      sseg.write\_string(0, "HELLO");
+
+&nbsp;  } //while
+
+} //main
+
+
+
+
+
+
+
+
+
+
+
+###### 2.3.2 Show User Input Text Via UART-
+
+###### **main\_sampler\_test.cpp-**
+
+int get\_user\_message(char \*buffer) {
+
+&nbsp;   char c;
+
+&nbsp;   int idx = 0;
+
+&nbsp;   int data;
+
+&nbsp;   
+
+&nbsp;   // 1. Initial Setup
+
+&nbsp;   sseg.clear\_all();               
+
+&nbsp;   uart.disp("\\r\\nEnter Message (Max 8 chars, Only 0-9 A-Z a-z or space): "); 
+
+
+
+&nbsp;   // 2. Input 
+
+&nbsp;   while(1) {
+
+&nbsp;       data = uart.rx\_byte();
+
+&nbsp;       if (data != -1) {
+
+&nbsp;           c = static\_cast<char>(data);
+
+&nbsp;           // Convert lowercase → uppercase
+
+&nbsp;           if (c >= 'a' \&\& c <= 'z')
+
+&nbsp;               c = c - 'a' + 'A';
+
+
+
+&nbsp;           // Case A: Enter Key 
+
+&nbsp;           if (c == '\\r' || c == '\\n') {
+
+&nbsp;               buffer\[idx] = '\\0';   
+
+&nbsp;               uart.disp("\\r\\n");
+
+&nbsp;               return idx;           
+
+&nbsp;           }
+
+&nbsp;           
+
+&nbsp;           // Case B: Backspace 
+
+&nbsp;           else if (c == '\\b' || c == 0x7f) {
+
+&nbsp;               if (idx > 0) {
+
+&nbsp;                   idx--;            
+
+&nbsp;                   buffer\[idx] = ' '; // 
+
+&nbsp;                   sseg.write\_string(0, buffer); 
+
+&nbsp;                   uart.tx\_byte('\\b');
+
+&nbsp;                   uart.tx\_byte(' ');
+
+&nbsp;                   uart.tx\_byte('\\b');
+
+&nbsp;               }
+
+&nbsp;           }
+
+&nbsp;           
+
+&nbsp;           // Case C: Normal Character 
+
+&nbsp;           else if (idx < 8) {       
+
+&nbsp;               if ((c >= 'a' \&\& c <= 'z') || (c >= 'A' \&\& c <= 'Z') || 
+
+&nbsp;                   (c >= '0' \&\& c <= '9') || (c == ' ')) 
+
+&nbsp;               {
+
+&nbsp;                   buffer\[idx] = c;     
+
+&nbsp;                   idx++;                
+
+&nbsp;                   buffer\[idx] = '\\0';  
+
+&nbsp;                   sseg.write\_string(0, buffer); 
+
+&nbsp;                   uart.tx\_byte(c);
+
+&nbsp;               }
+
+&nbsp;           }
+
+&nbsp;       }
+
+&nbsp;   }
+
+}
+
+
+
+###### **Test Program-**
+
+int main() {
+
+&nbsp;   char message\[64];  // Allow longer messages
+
+&nbsp;   int len;
+
+
+
+&nbsp;   while (1) {
+
+&nbsp;       // 1. Get message from user
+
+&nbsp;       len = get\_user\_message(message); 
+
+&nbsp;       if (len == 0) continue;  // Skip rest if empty message
+
+
+
+&nbsp;       // 2. Display message on 7-segment
+
+&nbsp;       sseg.write\_string(0, message);
+
+
+
+
+
+&nbsp;       sleep\_ms(5000);
+
+&nbsp;   } //while
+
+} //main
+
+
 
 
 
@@ -304,25 +710,11 @@ I plan on sending a message to the computer over UART that says "Enter you Morse
 
 
 
-## 3\. Message Display on Seven Segment Displays-
-
-I also want to incorporate the sseg file from Chu to display the entire message the 8 seven segment displays and the character that's being sent i want to flash it. I would like to only have this as a hardware component with a case statement to determine which seven segment output to show and somehow work in a counter at like 200 ms on 50 ms off or something that flashes the current transmitting character.
-
-
-
-3.2 Testing sseg mux (slot 8)-
-
-
-
-3.1 Modifying Slot 8 for Flash Mask-
-
-In order to flash the corresponding transmitting character, we would need to alter the time in which is delayed for cycling through each seven segment. The easiest way would be to bypass all hardware and implement it on the software side. However, inputting time delays in software will affect the timing needed for the morse code sound transmission that is happening concurrently. The solution is to use what we did in earlier labs to write to a hardware register from software. The software will know which of the characters is currently being played using the morse code / ddfs system and can convert that to a 8 bit vector that has a 1 for the position of the seven segment that is being played and will thus need to flash. We can write this to a register in a new slot, example slot 4 as I did on lab3. Alternatively we can keep the slot 8 compact and use its register using addr, etc. Address 00 write characters as currently done then address 01 is responsible for the flash mask.
 
 
 
 
-
-## 4\. Morse Code Logic:
+## 3\. Morse Code Logic:
 
 * Dit: 1 unit
 * Dah: 3 units
@@ -340,7 +732,154 @@ Talk about the time unit I choose as a good balance.
 
 
 
+Code:
 
+1. Add play\_message function to morse class
+   
+
+void morse::play\_message(const char \*msg)
+
+{
+
+&nbsp;   for (int i = 0; i < 8 \&\& msg\[i] != '\\0'; i++) {
+
+&nbsp;       char c = msg\[i];
+
+&nbsp;       int idx = -1;
+
+
+
+&nbsp;       if (c >= 'A' \&\& c <= 'Z') idx = c - 'A';      // letters
+
+&nbsp;       else if (c >= '0' \&\& c <= '9') idx = 26 + (c - '0'); // digits
+
+&nbsp;       else continue;  // skip unsupported characters
+
+
+
+&nbsp;       const char \*morse\_code = MORSE\_TABLE\[idx];
+
+
+
+&nbsp;       // Play each symbol in the letter
+
+&nbsp;       for (int j = 0; morse\_code\[j] != '\\0'; j++) {
+
+&nbsp;           if (morse\_code\[j] == '.') play\_dit();
+
+&nbsp;           else if (morse\_code\[j] == '-') play\_dah();
+
+
+
+&nbsp;           // short pause between symbols
+
+&nbsp;           if (morse\_code\[j+1] != '\\0') sleep\_ms(SYMBOL\_SPACE\_MS);
+
+&nbsp;       }
+
+
+
+&nbsp;       // Space between letters
+
+&nbsp;       play\_letter\_space();
+
+&nbsp;   }
+
+}
+
+
+
+2\. Add Morse lookup table to morse.cpp
+
+
+
+static const char\* MORSE\_TABLE\[36] = {
+
+&nbsp;   ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---",  // A-J
+
+&nbsp;   "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-",     // K-T
+
+&nbsp;   "..-", "...-", ".--", "-..-", "-.--", "--..",                            // U-Z
+
+&nbsp;   "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----." // 0-9
+
+};
+
+
+
+
+
+3\. Add main logic
+
+morse\_player.play\_message(message);
+
+
+
+
+
+
+
+## 4\. Message Display on Seven Segment Displays-
+
+I also want to incorporate the sseg file from Chu to display the entire message the 8 seven segment displays and the character that's being sent i want to flash it. I would like to only have this as a hardware component with a case statement to determine which seven segment output to show and somehow work in a counter at like 200 ms on 50 ms off or something that flashes the current transmitting character.
+
+
+
+3.2 Testing sseg mux (slot 8)-
+
+
+
+3.1 Modifying Slot 8 for Flash Mask-
+
+In order to flash the corresponding transmitting character, we would need to alter the time in which is delayed for cycling through each seven segment. The easiest way would be to bypass all hardware and implement it on the software side. However, inputting time delays in software will affect the timing needed for the morse code sound transmission that is happening concurrently. The solution is to use what we did in earlier labs to write to a hardware register from software. The software will know which of the characters is currently being played using the morse code / ddfs system and can convert that to a 8 bit vector that has a 1 for the position of the seven segment that is being played and will thus need to flash. We can write this to a register in a new slot, example slot 4 as I did on lab3. Alternatively we can keep the slot 8 compact and use its register using addr, etc. Address 00 write characters as currently done then address 01 is responsible for the flash mask.
+
+
+
+
+
+Software Side:
+
+sseg.h: To get private base\_addr
+
+uint32\_t get\_base\_addr() const { return base\_addr; }
+
+
+
+morse.h:
+
+add sseg pointer to constructor and private data member
+
+
+
+morse.cpp- offset is 2 becuase first register are used to disern which 4 7-segment chunk is being written to. 
+
+io\_write(sseg\_p->get\_base\_addr(), 2, 7 - i); // Write led num to register 3
+
+
+
+
+
+
+
+Hardware Side:
+
+led\_mux8.sv-
+
+Have access to 18 bit counter which uses 3 most significant bits or multiplexing seven segment displays which at bit 16 equals ~1600Hz. We want a notiable blink so we'll choose around 150ms or around 7 Hz. This means we'll need from formula 7Hz = 100 MHz / 2N -> N = 23.77 ~ 24
+
+We only have an 18 bit counter so will have to extend to 24 and alter the 3 bits use for the normal multiplexing
+
+\*\*\*\* MUST CHANGE CHU'S DEODING OF D0 AND D1 REGISTERS WITH WR\_DATA \*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
+
+
+
+
+
+add enable bit in separate register
+
+
+
+# **ADD SUPPORT FOR SPACE !!!!!!!!!!!!!!!!!!!!!!!!!**
 
 ## 5\. Output Speaker and Amplifier:
 
