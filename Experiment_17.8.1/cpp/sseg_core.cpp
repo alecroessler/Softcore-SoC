@@ -14,8 +14,6 @@ SsegCore::SsegCore(uint32_t core_base_addr) {
    // i.e., HI_PTN[0] is the leftmost led
    const uint8_t HI_PTN[]={0xff,0xf9,0x89,0xff,0xff,0xff,0xff,0xff};
    base_addr = core_base_addr;
-   write_8ptn((uint8_t*) HI_PTN);
-   set_dp(0x02);
 }
 
 SsegCore::~SsegCore() {
@@ -85,3 +83,49 @@ uint8_t SsegCore::h2s(int hex) {
       ptn = 0xff;
    return (ptn);
 }
+
+void SsegCore::print_temp(float temp, bool celcius) {
+    float val;
+    
+    // Convert Unit
+    if (celcius) {
+        val = temp;
+    } else {
+        val = (temp * 1.8) + 32.0;
+    }
+
+    // Extract Digits (ones, tens, hundreds, thousands)
+    int temp_int = (int)(val * 100); 
+    int d3 = (temp_int / 1000) % 10; 
+    int d2 = (temp_int / 100) % 10;  
+    int d1 = (temp_int / 10) % 10;   
+    int d0 = temp_int % 10;          
+
+    // Fill Buffer
+    uint8_t buf[8];
+    // Unit Letter 
+    buf[0] = celcius ? h2s(12) : h2s(15); 
+    buf[1] = 0xFF; 
+
+    // The Number
+    buf[2] = h2s(d0); 
+    buf[3] = h2s(d1); 
+    buf[4] = h2s(d2); 
+    
+    // Handle leading zero for numbers < 10
+    if (d3 == 0) {
+        buf[5] = 0xFF; 
+    } else {
+        buf[5] = h2s(d3); 
+    }
+
+    // Left Padding 
+    buf[6] = 0xFF;
+    buf[7] = 0xFF;
+
+    // Write the patterns to the display registers
+    write_8ptn(buf);
+    set_dp(1 << 4); // Decimal Point
+}
+
+
