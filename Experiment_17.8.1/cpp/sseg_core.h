@@ -69,6 +69,7 @@ public:
     *
     */
    void set_dp(uint8_t pt);
+   void print_temp(float temp, bool celcius);
 
 private:
    /* variable to keep track of current status */
@@ -80,4 +81,4 @@ private:
 }
 ;
 
-#endif  // _SSEG_CORE_H_INCLUDED
+#endif  // _SSEG_CORE_H_INCLUDED
