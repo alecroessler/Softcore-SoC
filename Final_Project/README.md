@@ -31,4 +31,13 @@ I have organized the repository into `cpp` (Software) and `hdl` (Hardware) direc
 ---
 
 ## Quick Start (Run without Compiling)
-To test the project without regenerating the bitstream or Vitis application, I have included the final
+To test the project without regenerating the bitstream or Vitis application, I have included the final binary files in the root directory:
+
+1.  **Program FPGA:**
+    * Use **`final.bit`** and **`final.mmi`** to program the hardware.
+2.  **Run Application:**
+    * Load **`final_app_vitis.elf`** to run the software on the MicroBlaze processor.
+3.  **Interact:**
+    * Open a serial terminal (9600 baud).
+    * Type a message and press Enter.
+    * Listen to the audio jack and watch the 7-segment display.
