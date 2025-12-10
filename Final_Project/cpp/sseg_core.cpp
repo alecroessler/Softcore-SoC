@@ -90,7 +90,7 @@ uint8_t SsegCore::h2s(int hex) {
 
 uint8_t SsegCore::ascii_to_7seg(char c)
 {
-    // Convert lowercase → uppercase
+    // Convert lowercase to uppercase
     if (c >= 'a' && c <= 'z')
         c = c - 'a' + 'A';
     switch (c)
@@ -164,4 +164,5 @@ void SsegCore::write_string(int pos, const char *str)
 
     write_8ptn(buf);
 }
+
 
